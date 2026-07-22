@@ -78,16 +78,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
+      - uses: ./.github/actions/publish-docker
         with:
-          name: perldocker/perl-tester
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          dockerfile: Dockerfile
-          buildargs: BASE=${{ matrix.debian-version }}
-          tags: "latest,${{ matrix.debian-version }}"
-          no_push: &no-push >-
+          hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
+          hub-username: ${{ secrets.DOCKER_USERNAME }}
+          buildargs:    BASE=${{ matrix.debian-version }}
+          tags:         "latest,${{ matrix.debian-version }}"
+          no-push:      &no-push >-
             ${{ !(github.repository_owner == 'Perl' && github.ref_name == 'main' &&
             (github.event_name == 'push' || github.event_name == 'schedule' ||
             github.event_name == 'workflow_dispatch' ||
@@ -99,16 +96,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
+      - uses: ./.github/actions/publish-docker
         with:
-          name: perldocker/perl-tester
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          dockerfile: Dockerfile
-          buildargs: BASE=devel-slim-bookworm
-          tags: "devel,devel-slim-bookworm"
-          no_push: *no-push
+          hub-username: ${{ secrets.DOCKER_USERNAME }}
+          hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
+          buildargs:    BASE=devel-slim-bookworm
+          tags:         "devel,devel-slim-bookworm"
+          no-push:      *no-push
 
   build-buster:
     name: "Build versions for buster"
@@ -122,16 +116,13 @@ jobs:
         perl-version: ${{ fromJson (needs.prepare-matrix-buster.outputs.perl-versions) }}
     steps:
       - uses: actions/checkout@v7
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
+      - uses: ./.github/actions/publish-docker
         with:
-          name: perldocker/perl-tester
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          dockerfile: Dockerfile
-          buildargs: BASE=${{ matrix.perl-version }}-buster
-          tags: "${{ matrix.perl-version }}-buster,${{ matrix.perl-version }}"
-          no_push: *no-push
+          hub-username: ${{ secrets.DOCKER_USERNAME }}
+          hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
+          buildargs:    BASE=${{ matrix.perl-version }}-buster
+          tags:         "${{ matrix.perl-version }}-buster,${{ matrix.perl-version }}"
+          no-push:      *no-push
 
   build-bookworm-extra:
     name: "Build bookworm extra versions"
@@ -143,16 +134,13 @@ jobs:
         perl-version: ${{ fromJson(needs.prepare-matrix-bookworm-extra.outputs.perl-versions) }}
     steps:
       - uses: actions/checkout@v7
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
+      - uses: ./.github/actions/publish-docker
         with:
-          name: perldocker/perl-tester
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          dockerfile: Dockerfile
-          buildargs: BASE=${{ matrix.perl-version }}-slim-bookworm
-          tags: ${{ matrix.perl-version }}-slim-bookworm
-          no_push: *no-push
+          hub-username: ${{ secrets.DOCKER_USERNAME }}
+          hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
+          buildargs:    BASE=${{ matrix.perl-version }}-slim-bookworm
+          tags:         ${{ matrix.perl-version }}-slim-bookworm
+          no-push:      *no-push
 
   build-bookworm-defaults:
     name: "Build bookworm default versions"
@@ -164,16 +152,13 @@ jobs:
         perl-version: ${{ fromJson(needs.prepare-matrix-bookworm-defaults.outputs.perl-versions) }}
     steps:
       - uses: actions/checkout@v7
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@v5
+      - uses: ./.github/actions/publish-docker
         with:
-          name: perldocker/perl-tester
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          dockerfile: Dockerfile
-          buildargs: BASE=${{ matrix.perl-version }}-slim-bookworm
-          tags: ${{ matrix.perl-version }}-slim-bookworm,${{ matrix.perl-version }}
-          no_push: *no-push
+          hub-username: ${{ secrets.DOCKER_USERNAME }}
+          hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
+          buildargs:    BASE=${{ matrix.perl-version }}-slim-bookworm
+          tags:         ${{ matrix.perl-version }}-slim-bookworm,${{ matrix.perl-version }}
+          no-push:      *no-push
 
   build-trixie-defaults:
       name: "Build trixie default versions"
@@ -185,14 +170,11 @@ jobs:
           perl-version: ${{ fromJson(needs.prepare-matrix-trixie-defaults.outputs.perl-versions) }}
       steps:
         - uses: actions/checkout@v7
-        - name: Publish to Registry
-          uses: elgohr/Publish-Docker-Github-Action@v5
+        - uses: ./.github/actions/publish-docker
           with:
-            name: perldocker/perl-tester
-            username: ${{ secrets.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-            dockerfile: Dockerfile
-            buildargs: BASE=${{ matrix.perl-version }}-slim-trixie
-            tags: ${{ matrix.perl-version }}-slim-trixie,${{ matrix.perl-version }}
-            no_push: *no-push
-  
+            hub-username: ${{ secrets.DOCKER_USERNAME }}
+            hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
+            buildargs:    BASE=${{ matrix.perl-version }}-slim-trixie
+            tags:         ${{ matrix.perl-version }}-slim-trixie,${{ matrix.perl-version }}
+            no-push:      *no-push
+

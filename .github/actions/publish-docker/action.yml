@@ -1,0 +1,34 @@
+---
+name:               "Publish Docker Image"
+description:        "Build and publish a perl-tester Docker image to Docker Hub"
+
+inputs:
+  buildargs:
+    description:    "Docker build arguments"
+    required:       true
+  hub-password:
+    description:    "Docker Hub password"
+    required:       true
+  hub-username:
+    description:    "Docker Hub username"
+    required:       true
+  no-push:
+    description:    "Whether to skip pushing the image"
+    required:       true
+  tags:
+    description:    "Docker image tags (comma-separated)"
+    required:       true
+
+runs:
+  using:            "composite"
+  steps:
+    - name:         "Publish to Registry"
+      uses:         elgohr/Publish-Docker-Github-Action@v5
+      with:
+        buildargs:  "${{ inputs.buildargs }}"
+        dockerfile: "Dockerfile"
+        name:       "perldocker/perl-tester"
+        no_push:    "${{ inputs.no-push }}"
+        password:   "${{ inputs.hub-password }}"
+        tags:       "${{ inputs.tags }}"
+        username:   "${{ inputs.hub-username }}"

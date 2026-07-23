@@ -84,11 +84,6 @@ jobs:
           hub-username: ${{ secrets.DOCKER_USERNAME }}
           buildargs:    BASE=${{ matrix.debian-version }}
           tags:         "latest,${{ matrix.debian-version }}"
-          no-push:      &no-push >-
-            ${{ !(github.repository_owner == 'Perl' && github.ref_name == 'main' &&
-            (github.event_name == 'push' || github.event_name == 'schedule' ||
-            github.event_name == 'workflow_dispatch' ||
-            github.event.pull_request.merged == true)) }}
 
   devel-build:
     name: "Build latest"
@@ -102,7 +97,6 @@ jobs:
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           buildargs:    BASE=devel-slim-bookworm
           tags:         "devel,devel-slim-bookworm"
-          no-push:      *no-push
 
   build-buster:
     name: "Build versions for buster"
@@ -122,7 +116,6 @@ jobs:
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           buildargs:    BASE=${{ matrix.perl-version }}-buster
           tags:         "${{ matrix.perl-version }}-buster,${{ matrix.perl-version }}"
-          no-push:      *no-push
 
   build-bookworm-extra:
     name: "Build bookworm extra versions"
@@ -140,7 +133,6 @@ jobs:
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           buildargs:    BASE=${{ matrix.perl-version }}-slim-bookworm
           tags:         ${{ matrix.perl-version }}-slim-bookworm
-          no-push:      *no-push
 
   build-bookworm-defaults:
     name: "Build bookworm default versions"
@@ -158,7 +150,6 @@ jobs:
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           buildargs:    BASE=${{ matrix.perl-version }}-slim-bookworm
           tags:         ${{ matrix.perl-version }}-slim-bookworm,${{ matrix.perl-version }}
-          no-push:      *no-push
 
   build-trixie-defaults:
       name: "Build trixie default versions"
@@ -176,5 +167,4 @@ jobs:
             hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
             buildargs:    BASE=${{ matrix.perl-version }}-slim-trixie
             tags:         ${{ matrix.perl-version }}-slim-trixie,${{ matrix.perl-version }}
-            no-push:      *no-push
 

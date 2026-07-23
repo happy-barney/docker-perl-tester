@@ -12,9 +12,6 @@ inputs:
   hub-username:
     description:    "Docker Hub username"
     required:       true
-  no-push:
-    description:    "Whether to skip pushing the image"
-    required:       true
   tags:
     description:    "Docker image tags (comma-separated)"
     required:       true
@@ -28,7 +25,11 @@ runs:
         buildargs:  "${{ inputs.buildargs }}"
         dockerfile: "Dockerfile"
         name:       "perldocker/perl-tester"
-        no_push:    "${{ inputs.no-push }}"
         password:   "${{ inputs.hub-password }}"
         tags:       "${{ inputs.tags }}"
         username:   "${{ inputs.hub-username }}"
+        no_push:    >-
+          ${{ !(github.repository_owner == 'Perl' && github.ref_name == 'main' &&
+          (github.event_name == 'push' || github.event_name == 'schedule' ||
+          github.event_name == 'workflow_dispatch' ||
+          github.event.pull_request.merged == true)) }}

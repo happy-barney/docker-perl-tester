@@ -9,55 +9,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  prepare-target-buster:
-    name: "List perl versions [buster]"
-    runs-on: ubuntu-latest
+  prepare-versions:
+    name:               "List perl versions"
+    runs-on:            ubuntu-latest
     outputs:
-      perl-versions: ${{ steps.action.outputs.perl-versions }}
+      bookworm:  ${{ steps.action.outputs.versions-target-perl-bookworm }}
+      buster:    ${{ steps.action.outputs.versions-target-perl-buster }}
+      trixie:    ${{ steps.action.outputs.versions-target-perl-trixie }}
     steps:
-      - id: action
-        name: Perl versions action step
-        uses: perl-actions/perl-versions@v2
+      - id:             action
+        name:           Perl versions action step
+        uses:           perl-actions/multi-target-perl-versions@v2
         with:
-          target:     'perl-buster'
-          since-perl: '5.8'
-          with-devel: 'false'
-
-  prepare-target-bookworm:
-    name: "List perl versions [bookworm]"
-    runs-on: ubuntu-latest
-    outputs:
-      perl-versions: ${{ steps.action.outputs.perl-versions }}
-    steps:
-      - id: action
-        name: Perl versions action step
-        uses: perl-actions/perl-versions@v2
-        with:
-          target:     'perl-bookworm'
-          since-perl: '5.8'
-          with-devel: 'false'
-
-  prepare-target-trixie:
-    name: "List perl versions [trixie]"
-    runs-on: ubuntu-latest
-    outputs:
-      perl-versions: ${{ steps.action.outputs.perl-versions }}
-    steps:
-      - id: action
-        name: Perl versions action step
-        uses: perl-actions/perl-versions@v2
-        with:
-          target:     'perl-trixie'
-          since-perl: '5.8'
-          with-devel: 'false'
+          since-perl:                '5.8'
+          with-target-perl-bookworm: 'true'
+          with-target-perl-bullseye: 'false'
+          with-target-perl-buster:   'true'
+          with-target-perl-trixie:   'true'
 
   prepare-matrix:
     name:               "Prepare matrix"
     runs-on:            ubuntu-latest
     needs:
-      - prepare-target-buster
-      - prepare-target-bookworm
-      - prepare-target-trixie
+      - prepare-versions
     outputs:
       matrix:           ${{ steps.action.outputs.matrix }}
     steps:
@@ -66,9 +40,9 @@ jobs:
         name:           "Perl versions action step"
         uses:           ./.github/actions/build-matrix
         with:
-          buster:       ${{ needs.prepare-target-buster.outputs.perl-versions }}
-          bookworm:     ${{ needs.prepare-target-bookworm.outputs.perl-versions }}
-          trixie:       ${{ needs.prepare-target-trixie.outputs.perl-versions }}
+          bookworm:     ${{ needs.prepare-versions.outputs.bookworm }}
+          buster:       ${{ needs.prepare-versions.outputs.buster   }}
+          trixie:       ${{ needs.prepare-versions.outputs.trixie   }}
 
   latest-build:
     name: "Build latest"
@@ -79,8 +53,8 @@ jobs:
         debian-version: [buster,slim-bookworm,slim-trixie]
 
     steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/publish-docker
+      - uses:           actions/checkout@v7
+      - uses:           ./.github/actions/publish-docker
         with:
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           hub-username: ${{ secrets.DOCKER_USERNAME }}
@@ -97,8 +71,20 @@ jobs:
         with:
           hub-username: ${{ secrets.DOCKER_USERNAME }}
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          base:         devel-slim-bookworm
+          base:         "devel-slim-bookworm"
           tags:         "devel,devel-slim-bookworm"
+
+  dump-matrix:
+    name:               "Dump matrix"
+    runs-on:            ubuntu-latest
+    needs:
+      - prepare-matrix
+    steps:
+      - shell:          "bash"
+        env:
+          MATRIX:       ${{ toJSON (fromJSON (needs.prepare-matrix.outputs.matrix)) }}
+        run:            'echo "$MATRIX"'
+
 
   build:
     name:               "Build and publish docker images"

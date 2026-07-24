@@ -3,8 +3,8 @@ name:               "Publish Docker Image"
 description:        "Build and publish a perl-tester Docker image to Docker Hub"
 
 inputs:
-  buildargs:
-    description:    "Docker build arguments"
+  base:
+    description:    "Docker base image tag"
     required:       true
   hub-password:
     description:    "Docker Hub password"
@@ -22,7 +22,7 @@ runs:
     - name:         "Publish to Registry"
       uses:         elgohr/Publish-Docker-Github-Action@v5
       with:
-        buildargs:  "${{ inputs.buildargs }}"
+        buildargs:  "BASE=${{ inputs.base }}"
         dockerfile: "Dockerfile"
         name:       "perldocker/perl-tester"
         password:   "${{ inputs.hub-password }}"

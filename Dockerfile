@@ -1,6 +1,6 @@
 ARG BASE
 ARG CPANOUTDATED
-FROM perl:${BASE}
+FROM perl:${BASE:?}
 
 # redefine after the FROM
 ARG BASE

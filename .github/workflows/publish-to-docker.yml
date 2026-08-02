@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        debian-version: [buster,bookworm,trixie]
+        debian-version: [buster,slim-bookworm,slim-trixie]
 
     steps:
       - uses: actions/checkout@v7

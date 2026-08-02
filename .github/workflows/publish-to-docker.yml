@@ -129,7 +129,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           dockerfile: Dockerfile
-          buildargs: BASE=${{ matrix.perl-version }}-buster,CPANOUTDATED=1
+          buildargs: BASE=${{ matrix.perl-version }}-buster
           tags: "${{ matrix.perl-version }}-buster,${{ matrix.perl-version }}"
           no_push: *no-push
 
@@ -150,7 +150,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           dockerfile: Dockerfile
-          buildargs: BASE=${{ matrix.perl-version }}-slim-bookworm,CPANOUTDATED=1
+          buildargs: BASE=${{ matrix.perl-version }}-slim-bookworm
           tags: ${{ matrix.perl-version }}-slim-bookworm
           no_push: *no-push
 
@@ -171,7 +171,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           dockerfile: Dockerfile
-          buildargs: BASE=${{ matrix.perl-version }}-slim-bookworm,CPANOUTDATED=1
+          buildargs: BASE=${{ matrix.perl-version }}-slim-bookworm
           tags: ${{ matrix.perl-version }}-slim-bookworm,${{ matrix.perl-version }}
           no_push: *no-push
 
@@ -192,7 +192,7 @@ jobs:
             username: ${{ secrets.DOCKER_USERNAME }}
             password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
             dockerfile: Dockerfile
-            buildargs: BASE=${{ matrix.perl-version }}-slim-trixie,CPANOUTDATED=1
+            buildargs: BASE=${{ matrix.perl-version }}-slim-trixie
             tags: ${{ matrix.perl-version }}-slim-trixie,${{ matrix.perl-version }}
             no_push: *no-push
   

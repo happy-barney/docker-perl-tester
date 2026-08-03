@@ -23,13 +23,14 @@ RUN echo "DEBUG: BASE value is: ${BASE_IMAGE}" && \
         echo "DEBUG: BASE does not contain buster, skipping archive configuration"; \
     fi
 
-RUN apt-get update && \
-        apt-get dist-upgrade -y && \
-        apt-get -y --no-install-recommends install \
-            aspell aspell-en \
-            build-essential \
-            gpg \
-            git
+RUN apt-get update \
+ && apt-get dist-upgrade -y \
+ && apt-get -y --no-install-recommends install \
+    aspell aspell-en \
+    build-essential \
+    gpg \
+    git \
+ && true
 
 RUN cpanm --self-upgrade || \
     ( echo "# Installing cpanminus:"; curl -sL https://cpanmin.us/ | perl - App::cpanminus )

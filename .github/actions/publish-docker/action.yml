@@ -31,9 +31,10 @@ runs:
         tags:       "${{ inputs.tags }}"
 
     - name:         "Test image"
-      shell:        "bash"
+      if:           success ()
       env:
         TAGS:       "${{ inputs.tags }}"
+      shell:        "bash"
       run:          |
         image="perldocker/perl-tester:${TAGS%%,*}"
         docker run --rm -v "${PWD}:${PWD}" -w "${PWD}" "${image}" sh test-image-contract.sh
@@ -41,10 +42,15 @@ runs:
     # Push — local layer cache from the build step makes this nearly instant
     - name:         "Push image"
       if:           >-
-        ${{ github.repository_owner == 'Perl' && github.ref_name == 'main' &&
-        (github.event_name == 'push' || github.event_name == 'schedule' ||
-        github.event_name == 'workflow_dispatch' ||
-        github.event.pull_request.merged == true) }}
+        success ()
+        && github.repository_owner == 'Perl'
+        && github.ref_name == 'main'
+        && (
+          github.event_name == 'push'
+          || github.event_name == 'schedule'
+          || github.event_name == 'workflow_dispatch'
+          || github.event.pull_request.merged == true
+        )
       uses:         elgohr/Publish-Docker-Github-Action@v5
       with:
         dockerfile: "Dockerfile"

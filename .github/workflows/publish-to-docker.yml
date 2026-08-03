@@ -9,64 +9,66 @@ on:
   workflow_dispatch:
 
 jobs:
-  # buster images do not exist for 5.42 and newer.
-  prepare-matrix-buster:
-    runs-on: ubuntu-latest
+  prepare-target-buster:
     name: "List perl versions [buster]"
+    runs-on: ubuntu-latest
     outputs:
       perl-versions: ${{ steps.action.outputs.perl-versions }}
     steps:
-      - name: Perl versions action step
-        id: action
-        uses: perl-actions/perl-versions@v2.0
+      - id: action
+        name: Perl versions action step
+        uses: perl-actions/perl-versions@v2
         with:
+          target:     'perl-buster'
           since-perl: '5.8'
-          until-perl: '5.40'
           with-devel: 'false'
 
-  # bookworm base images only exist for 5.36 and newer.
-  # use default tags for 5.36 and newer
-  prepare-matrix-bookworm-extra:
-    runs-on: ubuntu-latest
+  prepare-target-bookworm:
     name: "List perl versions [bookworm]"
+    runs-on: ubuntu-latest
     outputs:
       perl-versions: ${{ steps.action.outputs.perl-versions }}
     steps:
-      - name: Perl versions action step
-        id: action
-        uses: perl-actions/perl-versions@v2.0
+      - id: action
+        name: Perl versions action step
+        uses: perl-actions/perl-versions@v2
         with:
-          since-perl: '5.36'
-          until-perl: '5.40'
+          target:     'perl-bookworm'
+          since-perl: '5.8'
           with-devel: 'false'
 
-  # Similar to the `matrix-bookworm` job, but also add the default tag like `5.42` to the list
-  prepare-matrix-bookworm-defaults:
+  prepare-target-trixie:
+    name: "List perl versions [trixie]"
     runs-on: ubuntu-latest
-    name: "List perl versions [bookworm defaults]"
     outputs:
       perl-versions: ${{ steps.action.outputs.perl-versions }}
     steps:
-      - name: Perl versions action step
-        id: action
-        uses: perl-actions/perl-versions@v2.0
+      - id: action
+        name: Perl versions action step
+        uses: perl-actions/perl-versions@v2
         with:
-          since-perl: '5.42'
+          target:     'perl-trixie'
+          since-perl: '5.8'
           with-devel: 'false'
 
-  # Similar to the `matrix-bookworm` job, but also add the default tag like `5.42` to the list
-  prepare-matrix-trixie-defaults:
-    runs-on: ubuntu-latest
-    name: "List perl versions [trixie defaults]"
+  prepare-matrix:
+    name:               "Prepare matrix"
+    runs-on:            ubuntu-latest
+    needs:
+      - prepare-target-buster
+      - prepare-target-bookworm
+      - prepare-target-trixie
     outputs:
-      perl-versions: ${{ steps.action.outputs.perl-versions }}
+      matrix:           ${{ steps.action.outputs.matrix }}
     steps:
-      - name: Perl versions action step
-        id: action
-        uses: perl-actions/perl-versions@v2.0
+      - uses:           actions/checkout@v6
+      - id:             action
+        name:           "Perl versions action step"
+        uses:           ./.github/actions/build-matrix
         with:
-          since-perl: '5.40'
-          with-devel: 'false'
+          buster:       ${{ needs.prepare-target-buster.outputs.perl-versions }}
+          bookworm:     ${{ needs.prepare-target-bookworm.outputs.perl-versions }}
+          trixie:       ${{ needs.prepare-target-trixie.outputs.perl-versions }}
 
   latest-build:
     name: "Build latest"
@@ -86,85 +88,34 @@ jobs:
           tags:         "latest,${{ matrix.debian-version }}"
 
   devel-build:
-    name: "Build latest"
+    name: "Build devel"
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/publish-docker
+      - uses:           actions/checkout@v7
+      - uses:           ./.github/actions/publish-docker
         with:
           hub-username: ${{ secrets.DOCKER_USERNAME }}
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
           base:         devel-slim-bookworm
           tags:         "devel,devel-slim-bookworm"
 
-  build-buster:
-    name: "Build versions for buster"
-    runs-on: ubuntu-latest
+  build:
+    name:               "Build and publish docker images"
+    runs-on:            ubuntu-latest
     needs:
-      - prepare-matrix-buster
+      - prepare-matrix
 
     strategy:
-      fail-fast: false
-      matrix:
-        perl-version: ${{ fromJson (needs.prepare-matrix-buster.outputs.perl-versions) }}
+      fail-fast:        false
+      matrix:           ${{ fromJSON (needs.prepare-matrix.outputs.matrix) }}
+
     steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/publish-docker
+      - uses:           actions/checkout@v7
+      - name:           "Build and Publish to Registry: ${{ matrix.base }} => ${{ matrix.tags }}"
+        uses:           ./.github/actions/publish-docker
         with:
           hub-username: ${{ secrets.DOCKER_USERNAME }}
           hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          base:         ${{ matrix.perl-version }}-buster
-          tags:         "${{ matrix.perl-version }}-buster,${{ matrix.perl-version }}"
-
-  build-bookworm-extra:
-    name: "Build bookworm extra versions"
-    runs-on: ubuntu-latest
-    needs: prepare-matrix-bookworm-extra
-    strategy:
-      fail-fast: false
-      matrix:
-        perl-version: ${{ fromJson(needs.prepare-matrix-bookworm-extra.outputs.perl-versions) }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/publish-docker
-        with:
-          hub-username: ${{ secrets.DOCKER_USERNAME }}
-          hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          base:         ${{ matrix.perl-version }}-slim-bookworm
-          tags:         ${{ matrix.perl-version }}-slim-bookworm
-
-  build-bookworm-defaults:
-    name: "Build bookworm default versions"
-    runs-on: ubuntu-latest
-    needs: prepare-matrix-bookworm-defaults
-    strategy:
-      fail-fast: false
-      matrix:
-        perl-version: ${{ fromJson(needs.prepare-matrix-bookworm-defaults.outputs.perl-versions) }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/publish-docker
-        with:
-          hub-username: ${{ secrets.DOCKER_USERNAME }}
-          hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-          base:         ${{ matrix.perl-version }}-slim-bookworm
-          tags:         ${{ matrix.perl-version }}-slim-bookworm,${{ matrix.perl-version }}
-
-  build-trixie-defaults:
-      name: "Build trixie default versions"
-      runs-on: ubuntu-latest
-      needs: prepare-matrix-trixie-defaults
-      strategy:
-        fail-fast: false
-        matrix:
-          perl-version: ${{ fromJson(needs.prepare-matrix-trixie-defaults.outputs.perl-versions) }}
-      steps:
-        - uses: actions/checkout@v7
-        - uses: ./.github/actions/publish-docker
-          with:
-            hub-username: ${{ secrets.DOCKER_USERNAME }}
-            hub-password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
-            base:         ${{ matrix.perl-version }}-slim-trixie
-            tags:         ${{ matrix.perl-version }}-slim-trixie,${{ matrix.perl-version }}
-
+          base:         ${{ matrix.base }}
+          tags:         ${{ matrix.tags }}

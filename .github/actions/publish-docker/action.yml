@@ -18,18 +18,38 @@ inputs:
 
 runs:
   using:            "composite"
+
   steps:
-    - name:         "Publish to Registry"
+    # Build only — make image locally available for testing
+    - name:         "Build image"
       uses:         elgohr/Publish-Docker-Github-Action@v5
       with:
         buildargs:  "BASE=${{ inputs.base }}"
         dockerfile: "Dockerfile"
         name:       "perldocker/perl-tester"
+        no_push:    true
+        tags:       "${{ inputs.tags }}"
+
+    - name:         "Test image"
+      shell:        "bash"
+      env:
+        TAGS:       "${{ inputs.tags }}"
+      run:          |
+        image="perldocker/perl-tester:${TAGS%%,*}"
+        docker run --rm -v "${PWD}:${PWD}" -w "${PWD}" "${image}" sh test-image-contract.sh
+
+    # Push — local layer cache from the build step makes this nearly instant
+    - name:         "Push image"
+      if:           >-
+        ${{ github.repository_owner == 'Perl' && github.ref_name == 'main' &&
+        (github.event_name == 'push' || github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch' ||
+        github.event.pull_request.merged == true) }}
+      uses:         elgohr/Publish-Docker-Github-Action@v5
+      with:
+        dockerfile: "Dockerfile"
+        name:       "perldocker/perl-tester"
+        no_push:    false
         password:   "${{ inputs.hub-password }}"
         tags:       "${{ inputs.tags }}"
         username:   "${{ inputs.hub-username }}"
-        no_push:    >-
-          ${{ !(github.repository_owner == 'Perl' && github.ref_name == 'main' &&
-          (github.event_name == 'push' || github.event_name == 'schedule' ||
-          github.event_name == 'workflow_dispatch' ||
-          github.event.pull_request.merged == true)) }}

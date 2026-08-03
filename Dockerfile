@@ -31,6 +31,7 @@ RUN apt-get update \
     build-essential \
     gpg \
     git \
+    wget \
  && true
 
 RUN cpanm --self-upgrade || \

@@ -18,6 +18,7 @@ test_program() {
 
 test_program adduser
 test_program perl
+test_program wget
 
 echo "1..$TEST_NUM"
 

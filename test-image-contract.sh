@@ -16,6 +16,7 @@ test_program() {
     fi
 }
 
+test_program adduser
 test_program perl
 
 echo "1..$TEST_NUM"

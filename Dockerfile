@@ -26,6 +26,7 @@ RUN echo "DEBUG: BASE value is: ${BASE_IMAGE}" && \
 RUN apt-get update \
  && apt-get dist-upgrade -y \
  && apt-get -y --no-install-recommends install \
+    adduser \
     aspell aspell-en \
     build-essential \
     gpg \

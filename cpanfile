@@ -116,6 +116,7 @@ requires_by_perl 'DateTime::Format::ISO8601',
 	;
 
 requires_by_perl 'DBI',
+	prior 5.012 => '==1.651',
 	;
 
 requires_by_perl 'Devel::CheckOS',
